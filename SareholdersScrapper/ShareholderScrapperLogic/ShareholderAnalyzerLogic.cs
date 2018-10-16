@@ -39,35 +39,35 @@ namespace SharehodlersScrapperLogic
 			{
 				p = new ExcelPackage(fi);
 				ExcelWorksheet workSheet = p.Workbook.Worksheets[1];
-				DataTable dt = new DataTable();
 				var start = workSheet.Dimension.Start.Row + 1;
 				var end = workSheet.Dimension.End.Row;
                 for (int row = start; row <= end; row++)
                 {
-                    string name = FilesHelper.CleanName(workSheet.Cells[row, 3].Text);
-                    string URL = workSheet.Cells[row, 4].Text;
-                    string companyName = FilesHelper.CleanCompanyName(workSheet.Cells[row, 1].Text);
-                    if (string.IsNullOrEmpty(name))
+                    string companyName = workSheet.Cells[row, 1].Text;
+                    string fileName = workSheet.Cells[row, 2].Text;
+                    string URL = workSheet.Cells[row, 6].Text;
+                    if (string.IsNullOrEmpty(companyName))
                     {
                         break;
                     }
+                    DataTable dt = null;
                     object arg = row;
 #if DEBUG
                     int rowNum = Convert.ToInt32(row);
-                    var htmlDocument = WebHelper.GetPageData(name, URL);
-                    bool? result = IsFF(htmlDocument, name, companyName);
-                    if (result == true)
-                    {
-                        workSheet.Cells[rowNum, 6].Value = "FF";
-                    }
-                    if (result == false)
-                    {
-                        workSheet.Cells[rowNum, 6].Value = "NFF";
-                    }
-                    if (result == null)
-                    {
-                        workSheet.Cells[rowNum, 6].Value = "To be checked";
-                    }
+                    dt = new DataTable("shareholdersTable");
+                    var htmlDocument = WebHelper.GetPageData(URL);
+                    var headers = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']").Where(x => x.Attributes.Count == 7).FirstOrDefault(x => string.IsNullOrEmpty(x.Attributes["style"].Value));
+                    //var shareholdersTable = htmlDocument.DocumentNode.SelectNodes("/html[1]/body[1]/div[4]/div[1]/div[1]/div[3]/table[1]/tr[1]/td[1]/table[1]/tr[2]/td[1]/table[3]/tr[2]/td[1]/table[6]/tr[2]/td[1]/table[1]/tr");
+                    //var test = shareholdersTable.Where(x => x.FirstChild.Name == "td");
+
+                    DataTable table = new DataTable();
+                    //foreach (HtmlNode header in shareholdersTable)
+                    //    table.Columns.Add(header.InnerText); // create columns from th
+                                                             // select rows with td elements 
+                    //foreach (var row in htmlDocument.DocumentNode.SelectNodes("//tr[td]"))
+                    //    table.Rows.Add(row.SelectNodes("td").Select(td => td.InnerText).ToArray());
+
+
                     Debug.WriteLine(rowNum);
 #else
                     tasks.Add(Task.Factory.StartNew(new Action<object>((argValue) =>

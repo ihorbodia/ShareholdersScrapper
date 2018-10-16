@@ -7,9 +7,9 @@ namespace SharehodlersScrapperLogic
 {
 	public static class WebHelper
 	{
-		public static HtmlDocument GetPageData(string name, string URL)
+		public static HtmlDocument GetPageData(string URL)
 		{
-			if (string.IsNullOrEmpty(name))
+			if (string.IsNullOrEmpty(URL))
 			{
 				return null;
 			}
