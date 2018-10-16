@@ -6,11 +6,11 @@ using SharehodlersScrapperLogic;
 
 namespace SharehodlersScrapper.Commands
 {
-    class ChooseFolderCommand : ICommand
+    class ChooseFileCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
-        NotificationModel parent;
-        public ChooseFolderCommand(NotificationModel parent)
+        readonly NotificationModel parent;
+        public ChooseFileCommand(NotificationModel parent)
         {
             this.parent = parent;
             parent.PropertyChanged += delegate { CanExecuteChanged?.Invoke(this, EventArgs.Empty); };

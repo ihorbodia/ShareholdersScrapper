@@ -51,24 +51,24 @@ namespace SharehodlersScrapperLogic
                         break;
                     }
                     DataTable dt = null;
-                    object arg = row;
 #if DEBUG
-                    int rowNum = Convert.ToInt32(row);
                     dt = new DataTable("shareholdersTable");
                     var htmlDocument = WebHelper.GetPageData(URL);
-                    var headers = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']").Where(x => x.Attributes.Count == 7).FirstOrDefault(x => string.IsNullOrEmpty(x.Attributes["style"].Value));
-                    //var shareholdersTable = htmlDocument.DocumentNode.SelectNodes("/html[1]/body[1]/div[4]/div[1]/div[1]/div[3]/table[1]/tr[1]/td[1]/table[1]/tr[2]/td[1]/table[3]/tr[2]/td[1]/table[6]/tr[2]/td[1]/table[1]/tr");
-                    //var test = shareholdersTable.Where(x => x.FirstChild.Name == "td");
+                    var shareholdersTable = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']")
+                        .Where(x => x.Attributes.Count == 7)
+                        .FirstOrDefault(x => string.IsNullOrEmpty(x.Attributes["style"].Value))
+                        .ChildNodes.Where(x => x.EndNode.Name == "tr" && x.FirstChild.Name != "#text");
 
                     DataTable table = new DataTable();
-                    //foreach (HtmlNode header in shareholdersTable)
-                    //    table.Columns.Add(header.InnerText); // create columns from th
-                                                             // select rows with td elements 
-                    //foreach (var row in htmlDocument.DocumentNode.SelectNodes("//tr[td]"))
-                    //    table.Rows.Add(row.SelectNodes("td").Select(td => td.InnerText).ToArray());
+                    table.Columns.Add();
+                    table.Columns.Add();
+                    table.Columns.Add();
+                    foreach (var item in shareholdersTable)
+                    {
+                        table.Rows.Add(item.ChildNodes[0].InnerText.Trim(), item.ChildNodes[1].InnerText.Trim(), item.ChildNodes[2].InnerText.Trim());
+                    }
 
 
-                    Debug.WriteLine(rowNum);
 #else
                     tasks.Add(Task.Factory.StartNew(new Action<object>((argValue) =>
                     {

@@ -22,13 +22,28 @@ namespace SharehodlersScrapperLogic
 			return selectedFileName;
 		}
 
+        public static string SelectFolder()
+        {
+            FolderBrowserDialog openFolderDialog = new FolderBrowserDialog();
+
+            string selectedFolderName = string.Empty;
+            if (openFolderDialog.ShowDialog() == DialogResult.OK)
+            {
+                selectedFolderName = openFolderDialog.SelectedPath;
+            }
+            else
+            {
+                selectedFolderName = string.Empty;
+            }
+            return selectedFolderName;
+        }
+
         public static string CleanCompanyName(string data)
         {
             if (string.IsNullOrEmpty(data))
             {
                 return string.Empty;
             }
-            string result = string.Empty;
             string newChar = string.Empty;
             data =
                 data.Replace("Inc.", newChar)
@@ -41,7 +56,7 @@ namespace SharehodlersScrapperLogic
                     .Replace("Plc", newChar)
                     .Replace(",", newChar)
                     .Replace(".", newChar);
-            var res = data.Trim().Split(' ').ToList().Where(x => x.Length > 1);
+            var res = data.Trim().Split(' ').AsEnumerable().Where(x => x.Length > 1);
             var resData = string.Join(" ", res);
             return resData;
         }
@@ -52,7 +67,6 @@ namespace SharehodlersScrapperLogic
             {
                 return string.Empty;
             }
-            string result = string.Empty;
             string newChar = string.Empty;
             data =
                 data.Replace("MBA", newChar)
@@ -67,7 +81,7 @@ namespace SharehodlersScrapperLogic
                     .Replace(".", newChar);
             data = Regex.Replace(data, @"\s[I]{1,}\s", string.Empty);
             data = Regex.Replace(data, @"(\s)([IV]{1,})(\b|\s)", string.Empty);
-            var res = data.Trim().Split(' ').ToList().Where(x => x.Length > 1);
+            var res = data.Trim().Split(' ').AsEnumerable().Where(x => x.Length > 1);
             var resData = string.Join(" ", res);
             return resData;
         }

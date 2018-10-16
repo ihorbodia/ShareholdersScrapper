@@ -11,18 +11,24 @@ namespace SharehodlersScrapper.Models
         private string _filePathLabel;
         private string _filePathLabelData;
 
+        private string _countryFolderPathLabel;
+        private string _countryFolderPathLabelData;
+
         private string _fileProcessingLabel;
         private string _fileProcessingLabelData;
 
         public NotificationModel()
         {
             ProcessFileCommand = new ProcessFileCommand(this);
-            ChooseFolderCommand = new ChooseFolderCommand(this);
+            ChooseCountryFolderCommand = new ChooseCountryFolderCommand(this);
+            ChooseFileCommand = new ChooseFileCommand(this);
             FilePathLabel = StringConsts.FilePathLabelConst;
             FileProcessingLabel = StringConsts.FileProcessingLabelConst;
+            CountryFolderPathLabel = StringConsts.CountryFolderPathLabelConst;
         }
         public ICommand ProcessFileCommand { get; private set; }
-        public ICommand ChooseFolderCommand { get; private set; }
+        public ICommand ChooseCountryFolderCommand { get; private set; }
+        public ICommand ChooseFileCommand { get; private set; }
         public string FilePathLabel
         {
             get
@@ -80,6 +86,36 @@ namespace SharehodlersScrapper.Models
                 {
                     _fileProcessingLabelData = value;
                     RaisePropertyChanged(nameof(FileProcessingLabelData));
+                }
+            }
+        }
+        public string CountryFolderPathLabel
+        {
+            get
+            {
+                return _countryFolderPathLabel;
+            }
+            private set
+            {
+                if (_filePathLabel != value)
+                {
+                    _countryFolderPathLabel = value;
+                    RaisePropertyChanged(nameof(CountryFolderPathLabel));
+                }
+            }
+        }
+        public string CountryFolderPathLabelData
+        {
+            get
+            {
+                return _countryFolderPathLabelData;
+            }
+            set
+            {
+                if (_filePathLabel != value)
+                {
+                    _countryFolderPathLabelData = value;
+                    RaisePropertyChanged(nameof(CountryFolderPathLabelData));
                 }
             }
         }

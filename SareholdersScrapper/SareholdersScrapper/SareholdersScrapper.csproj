@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\ChooseCountryFolderCommand.cs" />
     <Compile Include="ViewModel\NotificationViewModel.cs" />
     <Compile Include="Views\NotificationsView.xaml.cs">
       <DependentUpon>NotificationsView.xaml</DependentUpon>
@@ -67,7 +68,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Commands\ChooseFolderCommand.cs" />
+    <Compile Include="Commands\ChooseFileCommand.cs" />
     <Compile Include="Commands\ProcessFileCommand.cs" />
     <Compile Include="Common\StringConsts.cs" />
     <Compile Include="MainWindow.xaml.cs">

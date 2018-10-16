@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using SharehodlersScrapper.Common;
@@ -13,7 +12,7 @@ namespace SharehodlersScrapper.Commands
     class ProcessFileCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
-        NotificationModel parent;
+        readonly NotificationModel parent;
         ShareholderAnalyzerLogic ms;
         public ProcessFileCommand(NotificationModel parent)
         {
@@ -66,10 +65,6 @@ namespace SharehodlersScrapper.Commands
                 if (result == DialogResult.OK)
                 {
                     SaveFile();
-                }
-                else
-                {
-                    return;
                 }
             }
         }
