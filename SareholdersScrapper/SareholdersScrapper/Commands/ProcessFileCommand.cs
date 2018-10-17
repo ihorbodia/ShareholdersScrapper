@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using SharehodlersScrapper.Common;
 using SharehodlersScrapper.Models;
 using SharehodlersScrapperLogic;
@@ -20,7 +22,8 @@ namespace SharehodlersScrapper.Commands
         public bool CanExecute(object parameter)
         {
             return !string.IsNullOrEmpty(parent.FileProcessingLabelData) &&
-                    !string.IsNullOrEmpty(parent.CountryFolderPathLabelData);
+                    !string.IsNullOrEmpty(parent.CountryFolderPathLabelData) &&
+                    !parent.FileProcessingLabelData.Equals(StringConsts.FileProcessingLabelData_Processing);
         }
 
         public void Execute(object parameter)
@@ -37,15 +40,15 @@ namespace SharehodlersScrapper.Commands
             {
                 Task.Factory.StartNew(() =>
                 {
-                    Thread t = new Thread(() =>
-                    {
-                        ShareholderAnalyzerLogic ms = new ShareholderAnalyzerLogic();
-                        ms.ProcessFile(chosenPath, chosenFodlerPath);
-                    });
-                    t.Start();
-                    t.Join();
-                    parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_Finish;
-                    Console.WriteLine(StringConsts.FileProcessingLabelData_Finish);
+                    ShareholderAnalyzerLogic ms = new ShareholderAnalyzerLogic();
+                    ms.ProcessFile(chosenPath, chosenFodlerPath);
+                })
+                .ContinueWith((action) =>
+                {
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => {
+                        parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_Finish;
+                        Console.WriteLine(StringConsts.FileProcessingLabelData_Finish);
+                    }));
                 });
             }
             catch (Exception)

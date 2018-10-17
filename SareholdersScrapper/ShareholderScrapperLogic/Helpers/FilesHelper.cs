@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace SharehodlersScrapperLogic
+namespace SharehodlersScrapperLogic.Helpers
 {
     public static class FilesHelper
 	{

@@ -2,7 +2,7 @@
 using System.Windows.Input;
 using SharehodlersScrapper.Models;
 using SharehodlersScrapper.Common;
-using SharehodlersScrapperLogic;
+using SharehodlersScrapperLogic.Helpers;
 
 namespace SharehodlersScrapper.Commands
 {

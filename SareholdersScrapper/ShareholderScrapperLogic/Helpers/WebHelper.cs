@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 
-namespace SharehodlersScrapperLogic
+namespace SharehodlersScrapperLogic.Helpers
 {
 	public static class WebHelper
 	{

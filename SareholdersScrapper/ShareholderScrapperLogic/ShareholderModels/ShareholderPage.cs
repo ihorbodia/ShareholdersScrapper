@@ -1,5 +1,5 @@
 ﻿using HtmlAgilityPack;
-using System.Collections.Generic;
+using SharehodlersScrapperLogic.Helpers;
 using System.Linq;
 
 namespace SharehodlersScrapperLogic.ShareholderModels

@@ -1,5 +1,6 @@
 ﻿using OfficeOpenXml;
 using SharehodlersScrapperLogic.CompanyModels;
+using SharehodlersScrapperLogic.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -43,10 +44,7 @@ namespace SharehodlersScrapperLogic
 #if DEBUG
                     var htmlDocument = WebHelper.GetPageData(URL);
                     ShareholdersTable table = new ShareholdersTable();
-                    
-                        table.InitTable(htmlDocument);
-                   
-
+                    table.InitTable(htmlDocument);
                     DirectoryInfo d = new DirectoryInfo(countryFolderPath);
                     var file = d.GetFiles("*.xlsx").FirstOrDefault(x => x.Name.Contains(fileName));
                     if (file == null)
@@ -58,7 +56,7 @@ namespace SharehodlersScrapperLogic
                         ExcelWorksheet ws = pck.Workbook.Worksheets.FirstOrDefault(x => x.Name.Equals("Feuil1"));
                         if (ws == null)
                         {
-                            return;
+                            break;
                         }
                         ws.Cells["A1"].LoadFromDataTable(table.ShareholdersDataTable, false);
                         ws.Cells["C1:C" + table.ShareholdersDataTable.Rows.Count].Style.Numberformat.Format = "#0.##%";
@@ -70,17 +68,10 @@ namespace SharehodlersScrapperLogic
                     {
                         var htmlDocument = WebHelper.GetPageData(URL);
                         ShareholdersTable table = new ShareholdersTable();
-                        
-                        
                         table.InitTable(htmlDocument);
-                        
-                        
-                        
-
                         DirectoryInfo d = new DirectoryInfo(countryFolderPath);
                         var file = d.GetFiles("*.xlsx").FirstOrDefault(x => x.Name.Contains(fileName));
-                        FileInfo countryFile = new FileInfo(file.FullName);
-                        if (!countryFile.Exists)
+                        if (file == null)
                         {
                             return;
                         }
@@ -92,7 +83,7 @@ namespace SharehodlersScrapperLogic
                                 return;
                             }
                             ws.Cells["A1"].LoadFromDataTable(table.ShareholdersDataTable, false);
-                            ws.Cells["C1:C" + table.ShareholdersDataTable.Rows.Count].Style.Numberformat.Format = "#0.##%";
+                            ws.Cells["C1:C" + table.ShareholdersDataTable.Rows.Count].Style.Numberformat.Format = "#0.0#%";
                             ws.Cells.AutoFitColumns();
                             SaveFile(pck);
                         }
@@ -100,7 +91,10 @@ namespace SharehodlersScrapperLogic
 #endif
                 }
             }
-            Task.WaitAll(tasks.ToArray());
+            if (tasks.Count > 0)
+            {
+                Task.WaitAll(tasks.ToArray());
+            }
         }
 
         private void SaveFile(ExcelPackage pck)
