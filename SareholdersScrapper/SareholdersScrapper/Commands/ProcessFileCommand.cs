@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Windows.Input;
 using SharehodlersScrapper.Common;
 using SharehodlersScrapper.Models;
@@ -13,7 +12,6 @@ namespace SharehodlersScrapper.Commands
     {
         public event EventHandler CanExecuteChanged;
         readonly NotificationModel parent;
-        ShareholderAnalyzerLogic ms;
         public ProcessFileCommand(NotificationModel parent)
         {
             this.parent = parent;
@@ -21,13 +19,15 @@ namespace SharehodlersScrapper.Commands
         }
         public bool CanExecute(object parameter)
         {
-            return parent.FileProcessingLabelData.Equals(StringConsts.FileProcessingLabelData_CanProcess);
+            return !string.IsNullOrEmpty(parent.FileProcessingLabelData) &&
+                    !string.IsNullOrEmpty(parent.CountryFolderPathLabelData);
         }
 
         public void Execute(object parameter)
         {
             string chosenPath = parent.FilePathLabelData;
-            ms = new ShareholderAnalyzerLogic(chosenPath);
+            string chosenFodlerPath = parent.CountryFolderPathLabelData;
+            
             if (string.IsNullOrEmpty(chosenPath.Trim()))
             {
                 return;
@@ -35,38 +35,24 @@ namespace SharehodlersScrapper.Commands
             parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_Processing;
             try
             {
-                new Task(() =>
+                Task.Factory.StartNew(() =>
                 {
-                    Thread t = new Thread(()=>
+                    Thread t = new Thread(() =>
                     {
-                        ms.ProcessFile();
-                        SaveFile();
+                        ShareholderAnalyzerLogic ms = new ShareholderAnalyzerLogic();
+                        ms.ProcessFile(chosenPath, chosenFodlerPath);
                     });
                     t.Start();
                     t.Join();
                     parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_Finish;
                     Console.WriteLine(StringConsts.FileProcessingLabelData_Finish);
-                }).Start();
+                });
             }
             catch (Exception)
             {
                 parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_ErrorMessage;
             }
         }
-        private void SaveFile()
-        {
-            try
-            {
-                ms.SaveFile();
-            }
-            catch (InvalidOperationException ex)
-            {
-                DialogResult result = System.Windows.Forms.MessageBox.Show("Try to close excel file and click OK.", "Error while saving file", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
-                if (result == DialogResult.OK)
-                {
-                    SaveFile();
-                }
-            }
-        }
+        
     }
 }

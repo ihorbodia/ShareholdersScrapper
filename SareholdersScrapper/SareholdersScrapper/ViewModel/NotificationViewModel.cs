@@ -11,8 +11,8 @@ namespace SharehodlersScrapper.ViewModel
         {
             NotificationModelObject = new NotificationModel()
             {
-
                 FilePathLabelData = string.Empty,
+                CountryFolderPathLabelData = string.Empty,
                 FileProcessingLabelData = StringConsts.FileProcessingLabelData_ChooseFile
             };
         }

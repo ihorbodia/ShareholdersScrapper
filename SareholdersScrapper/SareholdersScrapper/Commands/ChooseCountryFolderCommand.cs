@@ -26,7 +26,18 @@ namespace SharehodlersScrapper.Commands
             if (!string.IsNullOrEmpty(chosenPath.Trim()))
             {
                 parent.CountryFolderPathLabelData = chosenPath;
-                parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_CanProcess;
+                if (!string.IsNullOrEmpty(parent.CountryFolderPathLabelData) && !string.IsNullOrEmpty(parent.FilePathLabelData))
+                {
+                    parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_CanProcess;
+                }
+                if (string.IsNullOrEmpty(parent.CountryFolderPathLabelData))
+                {
+                    parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_ChooseFolder;
+                }
+                if (string.IsNullOrEmpty(parent.FilePathLabelData))
+                {
+                    parent.FileProcessingLabelData = StringConsts.FileProcessingLabelData_ChooseFile;
+                }
             }
         }
     }

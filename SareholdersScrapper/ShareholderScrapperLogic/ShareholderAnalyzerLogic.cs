@@ -1,46 +1,36 @@
-﻿using HtmlAgilityPack;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
+using SharehodlersScrapperLogic.CompanyModels;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace SharehodlersScrapperLogic
 {
-	public class ShareholderAnalyzerLogic
+    public class ShareholderAnalyzerLogic
 	{
-
-		String excelFilePath;
-		ExcelPackage p;
-
-		List<Task> tasks;
-
-		public ShareholderAnalyzerLogic(string filePath)
+        readonly List<Task> tasks;
+		public ShareholderAnalyzerLogic()
 		{
-			if (filePath.Contains("xlsx#"))
-			{
-				Debug.WriteLine("File Error");
-			}
-			else
-			{
-				tasks = new List<Task>();
-				excelFilePath = new FileInfo(filePath).FullName;
-			}
-		}
+            tasks = new List<Task>();
+        }
 
-		public void ProcessFile()
-		{
-			FileInfo fi = new FileInfo(excelFilePath);
-			if (fi.Exists)
-			{
-				p = new ExcelPackage(fi);
-				ExcelWorksheet workSheet = p.Workbook.Worksheets[1];
-				var start = workSheet.Dimension.Start.Row + 1;
-				var end = workSheet.Dimension.End.Row;
+        public void ProcessFile(string filePath, string countryFolderPathData)
+        {
+            string excelFilePath = new FileInfo(filePath).FullName;
+            string countryFolderPath = new FileInfo(countryFolderPathData).FullName;
+            FileInfo fi = new FileInfo(excelFilePath);
+            if (!fi.Exists)
+            {
+                return;
+            }
+            using (ExcelPackage p = new ExcelPackage(fi))
+            {
+                ExcelWorksheet workSheet = p.Workbook.Worksheets[1];
+                var start = workSheet.Dimension.Start.Row + 1;
+                var end = workSheet.Dimension.End.Row;
                 for (int row = start; row <= end; row++)
                 {
                     string companyName = workSheet.Cells[row, 1].Text;
@@ -50,193 +40,83 @@ namespace SharehodlersScrapperLogic
                     {
                         break;
                     }
-                    DataTable dt = null;
 #if DEBUG
-                    dt = new DataTable("shareholdersTable");
                     var htmlDocument = WebHelper.GetPageData(URL);
-                    var shareholdersTable = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']")
-                        .Where(x => x.Attributes.Count == 7)
-                        .FirstOrDefault(x => string.IsNullOrEmpty(x.Attributes["style"].Value))
-                        .ChildNodes.Where(x => x.EndNode.Name == "tr" && x.FirstChild.Name != "#text");
+                    ShareholdersTable table = new ShareholdersTable();
+                    
+                        table.InitTable(htmlDocument);
+                   
 
-                    DataTable table = new DataTable();
-                    table.Columns.Add();
-                    table.Columns.Add();
-                    table.Columns.Add();
-                    foreach (var item in shareholdersTable)
+                    DirectoryInfo d = new DirectoryInfo(countryFolderPath);
+                    var file = d.GetFiles("*.xlsx").FirstOrDefault(x => x.Name.Contains(fileName));
+                    if (file == null)
                     {
-                        table.Rows.Add(item.ChildNodes[0].InnerText.Trim(), item.ChildNodes[1].InnerText.Trim(), item.ChildNodes[2].InnerText.Trim());
+                        break;
                     }
-
-
-#else
-                    tasks.Add(Task.Factory.StartNew(new Action<object>((argValue) =>
+                    using (ExcelPackage pck = new ExcelPackage(file))
                     {
-                        int rowNum = Convert.ToInt32(argValue);
-                        var htmlDocument = WebHelper.GetPageData(name, URL);
-                        bool? result = IsFF(htmlDocument, name, companyName);
-                        if (result == true)
+                        ExcelWorksheet ws = pck.Workbook.Worksheets.FirstOrDefault(x => x.Name.Equals("Feuil1"));
+                        if (ws == null)
                         {
-                            workSheet.Cells[rowNum, 6].Value = "FF";
+                            return;
                         }
-                        if (result == false)
+                        ws.Cells["A1"].LoadFromDataTable(table.ShareholdersDataTable, false);
+                        ws.Cells["C1:C" + table.ShareholdersDataTable.Rows.Count].Style.Numberformat.Format = "#0.##%";
+                        ws.Cells.AutoFitColumns();
+                        SaveFile(pck);
+                    }
+#else
+                    tasks.Add(Task.Factory.StartNew(() =>
+                    {
+                        var htmlDocument = WebHelper.GetPageData(URL);
+                        ShareholdersTable table = new ShareholdersTable();
+                        
+                        
+                        table.InitTable(htmlDocument);
+                        
+                        
+                        
+
+                        DirectoryInfo d = new DirectoryInfo(countryFolderPath);
+                        var file = d.GetFiles("*.xlsx").FirstOrDefault(x => x.Name.Contains(fileName));
+                        FileInfo countryFile = new FileInfo(file.FullName);
+                        if (!countryFile.Exists)
                         {
-                            workSheet.Cells[rowNum, 6].Value = "NFF";
+                            return;
                         }
-                        if (result == null)
+                        using (ExcelPackage pck = new ExcelPackage(file))
                         {
-                            workSheet.Cells[rowNum, 6].Value = "To be checked";
+                            ExcelWorksheet ws = pck.Workbook.Worksheets.FirstOrDefault(x => x.Name.Equals("Feuil1"));
+                            if (ws == null)
+                            {
+                                return;
+                            }
+                            ws.Cells["A1"].LoadFromDataTable(table.ShareholdersDataTable, false);
+                            ws.Cells["C1:C" + table.ShareholdersDataTable.Rows.Count].Style.Numberformat.Format = "#0.##%";
+                            ws.Cells.AutoFitColumns();
+                            SaveFile(pck);
                         }
-                    }), arg));
+                    }));
 #endif
                 }
             }
-		}
-
-		public void SaveFile()
-		{
-			Task.WaitAll(tasks.ToArray());
-			p.Save();
-			p.Dispose();
-		}
-
-		private bool? IsFF(HtmlDocument htmlDocument, string name, string companyName)
-		{
-            name = name.ToUpper();
-            companyName = companyName.ToUpper();
-            Debug.WriteLine(name);
-			var shareholdersTable = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']")
-				.FirstOrDefault(x => x.Attributes.Count > 5);
-
-            var managersTable = htmlDocument.DocumentNode.SelectNodes("//table[@class='nfvtTab linkTabBl']")
-                .FirstOrDefault(x => x.Attributes.Count < 6)
-                .ChildNodes.Where(x => x.Name == "tr" && x.PreviousSibling.Name == "tr")
-                .SelectMany(x => x.ChildNodes.Where(y => y.Name == "td"));
-
-            IEnumerable<string> data = null;
-            if (shareholdersTable != null)
-			{
-				data = shareholdersTable.ChildNodes.Where(x => x.Name == "tr" && x.PreviousSibling.Name == "tr")
-				.Select(x => x.ChildNodes.Where(y => y.Name == "td").FirstOrDefault().InnerText.Trim());
-			}
-            if (!isSiteContainsName(data, name))
-            {
-                return true;
-            }
-            var linkToSummary = shareholdersTable.ChildNodes
-                .Where(x => x.Name == "tr" && x.PreviousSibling.Name == "tr")
-                .Where(x => x.FirstChild.Attributes["class"].Value == "nfvtL")
-                .Where(x => x.FirstChild.FirstChild.Name == "a")
-                .Where(x => x.InnerText.Trim().ToUpper().Contains(name))
-                .Select(n => n.FirstChild.FirstChild.Attributes["href"].Value).FirstOrDefault();
-            if (linkToSummary == null)
-            {
-                return true;
-            }
-            var doc = WebHelper.GetShareholderPage(name, linkToSummary).DocumentNode;
-            var personPageTables = doc.SelectNodes("//table[@class='tabElemNoBor overfH']");
-
-            var htmlPositionsTable = personPageTables.FirstOrDefault(x => x.InnerText.Contains("Current positions"));
-
-            IEnumerable<IList<HtmlNode>> currentPositionCompanies = null;
-            string jobTitle = string.Empty;
-            if (htmlPositionsTable != null)
-            {
-                currentPositionCompanies = htmlPositionsTable
-                .ChildNodes
-                .FirstOrDefault(x => x.Name == "tr" && x.LastChild.Name == "td")
-                .FirstChild
-                .FirstChild
-                .FirstChild
-                .ChildNodes
-                .Where(x => x.Name == "tr" && x.PreviousSibling.Name == "tr")
-                .Select(x => x.ChildNodes.Where(y => y.Name == "td").ToList());
-            }
-            
-            if (currentPositionCompanies == null)
-            {
-                var summaryText = personPageTables.FirstOrDefault(x => x.InnerText.Contains("Summary")).InnerText.ToUpper();
-                if (summaryText.IndexOf(companyName) != summaryText.LastIndexOf(companyName) && summaryText.IndexOf(companyName) != -1)
-                {
-                    return null;
-                }
-                else if (summaryText.Contains(companyName))
-                {
-                    if (isPresentedInSummary(summaryText, companyName))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        jobTitle = FoundJobTitle(summaryText, companyName);
-                    }
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                foreach (var positionRow in currentPositionCompanies)
-                {
-                    if (FilesHelper.CleanCompanyName(positionRow[0].InnerText.Trim()).Equals(companyName))
-                    {
-                        jobTitle = positionRow[1].InnerText.Trim();
-                        break;
-                    }
-                }
-            }
-            if (string.IsNullOrEmpty(jobTitle))
-            {
-                return true;
-            }
-
-            if (managersTable.Any(x => x.InnerText.Equals(jobTitle)))
-            {
-                return null;
-            }
-            else
-            {
-                return false;
-            }
+            Task.WaitAll(tasks.ToArray());
         }
-        
-        private string FoundJobTitle(string summaryText, string companyName)
+
+        private void SaveFile(ExcelPackage pck)
         {
-            Regex regex = new Regex("IS (.*) AT " + companyName);
-            var v = regex.Match(summaryText);
-            return v.Groups[1].ToString();
+            try
+            {
+                pck.Save();
+            }
+            catch (InvalidOperationException ex)
+            {
+                DialogResult result = MessageBox.Show("Try to close excel file " + ex.Message.Substring(ex.Message.LastIndexOf('\\') + 1)+" and click OK.", "Error while saving file", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                if (result == DialogResult.OK)
+                {
+                    SaveFile(pck);
+                }
+            }
         }
-
-        private bool isPresentedInSummary(string summaryText, string companyName)
-        {
-            return summaryText.Contains("is a Director at".ToUpper() + companyName) 
-                || summaryText.Contains("is an independent Director at".ToUpper() + companyName) 
-                || summaryText.Contains("is on the board of Directors at".ToUpper() + companyName) 
-                || summaryText.Contains("is on the board at".ToUpper() + companyName) 
-                || summaryText.Contains("founded".ToUpper() + companyName) 
-                || summaryText.Contains("founder at".ToUpper() + companyName);
-        }
-
-		private bool isSiteContainsName(IEnumerable<string> data, string name)
-		{
-			bool result = false;
-			if (string.IsNullOrEmpty(name))
-			{
-				return false;
-			}
-			if (data != null)
-			{
-				foreach (var item in data)
-				{
-					if (item.ToUpper().Contains(name.ToUpper()))
-					{
-						return true;
-					}
-				}
-			}
-			return result;
-		}
 	}
 }

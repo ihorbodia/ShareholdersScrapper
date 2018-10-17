@@ -26,9 +26,11 @@ namespace SharehodlersScrapper.Models
             FileProcessingLabel = StringConsts.FileProcessingLabelConst;
             CountryFolderPathLabel = StringConsts.CountryFolderPathLabelConst;
         }
+
         public ICommand ProcessFileCommand { get; private set; }
         public ICommand ChooseCountryFolderCommand { get; private set; }
         public ICommand ChooseFileCommand { get; private set; }
+
         public string FilePathLabel
         {
             get

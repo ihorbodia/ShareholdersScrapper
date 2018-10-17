@@ -9,7 +9,8 @@
         Title="Shareholder scrapper" 
         WindowStyle="SingleBorderWindow"
         TextBlock.TextAlignment="Center"
-        Height="250" Width="450" WindowStartupLocation="CenterScreen">
+        
+        Height="250" Width="450" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
         <views:NotificationsView x:Name = "NotificationsViewControl" Width="auto" Height="auto"/>
     </Grid>
