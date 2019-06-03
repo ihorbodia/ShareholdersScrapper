@@ -77,7 +77,7 @@ namespace SharehodlersScrapperLogic
                         }
                         using (ExcelPackage pck = new ExcelPackage(file))
                         {
-                            ExcelWorksheet ws = pck.Workbook.Worksheets.FirstOrDefault(x => x.Name.Equals("Feuil1"));
+                            ExcelWorksheet ws = pck.Workbook.Worksheets.FirstOrDefault(x => x.Name.ToLower().Equals("feuil1") || x.Name.ToLower().Equals("worksheet1"));
                             if (ws == null)
                             {
                                 return;
